@@ -1,0 +1,86 @@
+package parking
+
+fun main() {
+    var carPark = CarPark(0)
+    do {
+        val input = readLine()!!.split(" ")
+        when (input[0]) {
+            "create" -> {
+                carPark = CarPark(input[1].toInt())
+                println("Created a parking lot with ${input[1]} spots.")
+                }
+            "park" -> println(carPark.parkCar(input[1], input[2]))
+            "leave" -> println(carPark.leaveCar(input[1].toInt() - 1))
+            "status" -> carPark.status()
+            "reg_by_color" -> carPark.regByColor(input[1].toUpperCase())
+            "spot_by_color" -> carPark.spotByColor(input[1].toUpperCase())
+            "spot_by_reg" -> carPark.spotByReg(input[1].toUpperCase())
+            else -> {}
+        }
+    } while (input[0] != "exit")
+}
+data class ParkingSpot(var empty: Boolean, var plate: String, var colour: String)
+class CarPark(numOfSpots: Int) {
+    private val parkingSpots: Array<ParkingSpot> = Array(numOfSpots) { ParkingSpot(true, "", "") }
+
+    fun parkCar(plate: String, colour: String): String {
+        if (parkingSpots.size == 0) return "Sorry, a parking lot has not been created."        
+        if (thereIsSpace()) {
+        	parkingSpots.indexOfFirst { it.empty == true }.let {
+                parkingSpots[it] = ParkingSpot(false, plate, colour)
+                return "${parkingSpots[it].colour} car parked in spot ${it + 1}."
+            }
+        }
+        else return "Sorry, the parking lot is full."
+    }
+
+    fun leaveCar(index: Int): String {
+        if (parkingSpots.size == 0) return "Sorry, a parking lot has not been created."
+        else if (index !in 0..parkingSpots.lastIndex) return "Sorry, We don't have that number."
+        else if (!parkingSpots[index].empty) {
+            parkingSpots[index] = ParkingSpot(true, "", "")
+            return "Spot ${index + 1} is free."
+        }
+        return "There is no car in spot ${index + 1}."
+    }
+    
+    fun status() {
+        parkingSpots.forEach {
+            if (it.empty == false) println("${parkingSpots.indexOf(it) + 1} ${it.plate} ${it.colour}")
+        } 
+        if (parkingSpots.size == 0) println("Sorry, a parking lot has not been created.")
+        else if (allIsEmpty()) println("Parking lot is empty.")
+    }
+    fun regByColor(input1: String) {
+        var found = emptyArray<String>()
+        parkingSpots.forEach {
+            if (it.colour.toUpperCase() == input1) found += "${it.plate}"
+        } 
+        if (parkingSpots.size == 0) println("Sorry, a parking lot has not been created.")
+        else if (allIsEmpty()) println("Parking lot is empty.")
+        else if (found.size == 0) println("No cars with color $input1 were found.")
+        else println(found.joinToString(", "))
+    }
+    fun spotByColor(input1: String) {
+        var found = emptyArray<String>()
+        parkingSpots.forEach {
+            if (it.colour.toUpperCase() == input1) found += "${parkingSpots.indexOf(it) + 1}"
+        } 
+        if (parkingSpots.size == 0) println("Sorry, a parking lot has not been created.")
+        else if (allIsEmpty()) println("Parking lot is empty.")
+        else if (found.size == 0) println("No cars with color $input1 were found.")
+        else println(found.joinToString(", "))
+    }
+    fun spotByReg(input1: String) {
+        var found = emptyArray<String>()
+        parkingSpots.forEach {
+            if (it.plate.toUpperCase() == input1) found += "${parkingSpots.indexOf(it) + 1}"
+        } 
+        if (parkingSpots.size == 0) println("Sorry, a parking lot has not been created.")
+        else if (allIsEmpty()) println("Parking lot is empty.")
+        else if (found.size == 0) println("No cars with registration number $input1 were found.")
+        else println(found.joinToString(", "))
+    }
+    fun allIsEmpty(): Boolean = parkingSpots.count { it.empty == false } == 0
+    fun thereIsSpace(): Boolean = parkingSpots.count { it.empty == true } > 0
+}
